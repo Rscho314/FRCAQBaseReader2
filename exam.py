@@ -95,6 +95,8 @@ class Logic:
 class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
+        w, h = self.winfo_screenwidth(), self.winfo_screenheight()
+        self.geometry("%dx%d+0+0" % (w, h))
         self.bind("<Key-KP_Subtract>", self.OnSmaller)
         self.bind("<Key-KP_Add>", self.OnBigger)
         self.bind("<Right>", self.nextQuestion)

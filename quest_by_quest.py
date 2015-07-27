@@ -10,6 +10,7 @@ from Tkinter import StringVar
 import tkFont
 import os
 from random import randint
+from exam import InvokableCheckbutton
 
 
 class Logic:
@@ -63,6 +64,8 @@ class Logic:
 class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
+        w, h = self.winfo_screenwidth(), self.winfo_screenheight()
+        self.geometry("%dx%d+0+0" % (w, h))
         self.bind("<Key-KP_Subtract>", self.OnSmaller)
         self.bind("<Key-KP_Add>", self.OnBigger)
         self.bind("<Right>", self.nextQuestion)
@@ -83,12 +86,13 @@ class MainWindow(Tk):
             self.checkbuttonvar[str(i)] = BooleanVar()
             self.checkbtntext[str(i)] = StringVar()
             self.checkbtntext[str(i)].set(self.text['question'][i])
-            self.checkbuttons['question '+str(i)] = Checkbutton(self,
+            self.checkbuttons['question '+str(i)] = InvokableCheckbutton(self,
                               textvariable = self.checkbtntext[str(i)],
                               variable = self.checkbuttonvar[str(i)],
                               font=self.font)
             self.checkbuttons['question '+str(i)].pack(anchor = W)
             self.widgetwraplist.append(self.checkbuttons['question '+str(i)])
+            self.bind("<Key-KP_"+str(i)+">", self.checkbuttons['question '+str(i)].customInvoke)
         self.explvar = StringVar()
         self.explvar.set(' '.join(self.text['question'][6:]))
         self.explanation = Label(self, textvariable=self.explvar,
