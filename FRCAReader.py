@@ -6,7 +6,7 @@ Created on Fri Jul 24 15:17:33 2015
 """
 
 from Tkinter import Tk, Label, Checkbutton, W, S, BooleanVar, Button
-from Tkinter import StringVar, DISABLED, NORMAL
+from Tkinter import StringVar
 import tkFont
 import os
 from random import randint
@@ -51,13 +51,19 @@ class Logic:
 class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
+        self.bind("<Key-KP_Subtract>", self.OnSmaller)
+        self.bind("<Key-KP_Add>", self.OnBigger)
+        self.bind("<Right>", self.nextQuestion)
+        self.bind("<Return>", self.showAnswer)
         self.logic = Logic()
+        self.widgetwraplist = []
         self.text = self.logic.prepareQuestion()
         self.font = tkFont.Font(size=24)
         self.stmtvar = StringVar()
         self.stmtvar.set(self.text['question'][0])
-        self.statement = Label(self, textvariable = self.stmtvar)
+        self.statement = Label(self, textvariable=self.stmtvar, font=self.font)
         self.statement.pack(anchor = W)
+        self.widgetwraplist.append(self.statement)
         self.checkbuttons = {}
         self.checkbtntext = {}
         self.checkbuttonvar = {}        
@@ -67,16 +73,20 @@ class MainWindow(Tk):
             self.checkbtntext[str(i)].set(self.text['question'][i])
             self.checkbuttons['question '+str(i)] = Checkbutton(self,
                               textvariable = self.checkbtntext[str(i)],
-                              variable = self.checkbuttonvar[str(i)])
+                              variable = self.checkbuttonvar[str(i)],
+                              font=self.font)
             self.checkbuttons['question '+str(i)].pack(anchor = W)
+            self.widgetwraplist.append(self.checkbuttons['question '+str(i)])
         self.buttonNext = Button(self, text = 'Next question',
-                                 command = self.nextQuestion)
+                                 command = lambda: self.nextQuestion(1),
+                                 font=self.font)
         self.buttonNext.pack(anchor = S)
         self.buttonAnswer = Button(self, text = 'Show answers',
-                                 command = self.showAnswer)
+                                 command = lambda: self.showAnswer(1),
+                                 font=self.font)
         self.buttonAnswer.pack(anchor = S)
 
-    def nextQuestion(self):
+    def nextQuestion(self, event):
         self.text = self.logic.prepareQuestion()
         self.stmtvar.set(self.text['question'][0])        
         for i in range(1, 6):
@@ -84,7 +94,7 @@ class MainWindow(Tk):
             self.checkbuttonvar[str(i)].set(False)
             self.checkbtntext[str(i)].set(self.text['question'][i])
 
-    def showAnswer(self):
+    def showAnswer(self, event):
         self.givenAnswers = []
         for i in range(1, 6):
             self.givenAnswers.append(self.logic.str2bool(
@@ -95,12 +105,26 @@ class MainWindow(Tk):
                 self.checkbuttons['question '+str(i+1)].configure(fg='#009E18')
             else:
                 self.checkbuttons['question '+str(i+1)].configure(fg='red')
-        
-            # self.checkbuttons['question '+str(i)].configure(font = self.font)
+
+    def OnBigger(self, event):
+        '''Make the font 2 points bigger'''
+        size = self.font['size']
+        self.font.configure(size=size+2)
+
+    def OnSmaller(self, event):
+        '''Make the font 2 points smaller'''
+        size = self.font['size']
+        self.font.configure(size=size-2)
+
+    def wrapWidgets(self):
+        self.update()
+        for widget in self.widgetwraplist:
+            widget.configure(wraplength=self.winfo_width())
 
 
 def main():
     root = MainWindow()
+    root.wrapWidgets()
     root.mainloop()
     
 if __name__ == '__main__':
