@@ -5,7 +5,7 @@ Created on Fri Jul 24 15:17:33 2015
 @author: RLSR
 """
 
-from Tkinter import Tk, Label, Checkbutton, W, S, BooleanVar, Button
+from Tkinter import Tk, Label, Checkbutton, W, S, BooleanVar, Button, LEFT
 from Tkinter import StringVar
 import tkFont
 import os
@@ -19,20 +19,32 @@ class Logic:
             if os.path.isfile(os.path.join(self.quest_dir,f))]
     
     def chooseQuestion(self):
-        f = self.filenames[randint(0, 1666)]
-        return open(os.path.join(self.quest_dir, f), 'r')
+        self.f = self.filenames[randint(0, 1666)]
+        return open(os.path.join(self.quest_dir, self.f), 'r')
         
     def parseQuestion(self, question):
         q = question.readlines()
-        for l in q:
-            if l == '':
-                del q[l]
-                print 'Line '+str(l)+'was empty and deleted from the question'
+        to_delete = []
+        for l in range(len(q)):
+            if (q[l] == '' or q[l] == '\r\n' or q[l] == '\n'):
+                to_delete.append(l)
+        for i in list(reversed(to_delete)):
+#            s = 'Empty line '+ str(i) +' was deleted from {}'.format(self.f)
+            del q[i]
+#            print s
         answers = []
-        for i in range(1, 6):
-            answers.append(self.str2bool(q[i].split(',', 1)[0]))
-            q[i] = q[i].split(',', 1)[1]
-        return {'answers': answers, 'question': q}
+        try:
+            for i in range(1, 6):
+                answers.append(self.str2bool(q[i].split(',', 1)[0]))
+                q[i] = q[i].split(',', 1)[1]
+            return {'answers': answers, 'question': q}
+        except IndexError:
+            raise Exception(
+                'There was a mistake in {0} formatting: \n\n'.format(self.f)
+                + 'QUESTION: \n'                
+                + '{}\n\n'.format(q)
+                + 'ANSWERS: \n'
+                + '{}\n'.format(answers))
 
     def prepareQuestion(self):
         q = self.chooseQuestion()
@@ -77,6 +89,11 @@ class MainWindow(Tk):
                               font=self.font)
             self.checkbuttons['question '+str(i)].pack(anchor = W)
             self.widgetwraplist.append(self.checkbuttons['question '+str(i)])
+        self.explvar = StringVar()
+        self.explvar.set(' '.join(self.text['question'][6:]))
+        self.explanation = Label(self, textvariable=self.explvar,
+                                 font=self.font, justify=LEFT)
+        self.widgetwraplist.append(self.explanation)
         self.buttonNext = Button(self, text = 'Next question',
                                  command = lambda: self.nextQuestion(1),
                                  font=self.font)
@@ -88,7 +105,9 @@ class MainWindow(Tk):
 
     def nextQuestion(self, event):
         self.text = self.logic.prepareQuestion()
-        self.stmtvar.set(self.text['question'][0])        
+        self.stmtvar.set(self.text['question'][0])
+        self.explvar.set(' '.join(self.text['question'][6:]))
+        self.explanation.pack_forget()
         for i in range(1, 6):
             self.checkbuttons['question '+str(i)].configure(fg='black')
             self.checkbuttonvar[str(i)].set(False)
@@ -105,6 +124,7 @@ class MainWindow(Tk):
                 self.checkbuttons['question '+str(i+1)].configure(fg='#009E18')
             else:
                 self.checkbuttons['question '+str(i+1)].configure(fg='red')
+        self.explanation.pack(anchor = W)
 
     def OnBigger(self, event):
         '''Make the font 2 points bigger'''
