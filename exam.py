@@ -12,6 +12,17 @@ import os
 from random import randint
 
 
+class InvokableCheckbutton(Checkbutton):
+    '''
+    Subclass Tkinter.Checkbutton to allow keyboard binding of Checkbutton.invoke
+    through a wrapping method
+    '''
+    def __init__(self, parent, *args, **kwargs):
+        Checkbutton.__init__(self, parent, *args, **kwargs)
+
+    def customInvoke(self, event):
+        self.invoke()
+
 class Logic:
     def __init__(self):
         self.quest_dir = os.path.join(os.path.dirname(__file__), 'resource')
@@ -23,8 +34,12 @@ class Logic:
 
     def chooseQuestion(self):
         self.f = self.filenames[randint(0, 1666)]
-        self.questionpath = os.path.join(self.quest_dir, self.f)
-        self.questiondict[str(self.questionpath)] = {}
+#        self.f = 'QB3 (492).TXT'
+        if self.f not in self.questiondict:
+            self.questionpath = os.path.join(self.quest_dir, self.f)
+            self.questiondict[str(self.questionpath)] = {}
+        else:
+            self.chooseQuestion()
         return open(self.questionpath, 'r')
         
     def parseQuestion(self, question):
@@ -34,19 +49,20 @@ class Logic:
             if (q[l] == '' or q[l] == '\r\n' or q[l] == '\n'):
                 to_delete.append(l)
         for i in list(reversed(to_delete)):
-#            s = 'Empty line '+ str(i) +' was deleted from {}'.format(self.f)
             del q[i]
-#            print s
         answers = []
         try:
+            l = 0
             for i in range(1, 6):
+                l += 1
                 answers.append(self.str2bool(q[i].split(',', 1)[0]))
                 q[i] = q[i].split(',', 1)[1]
                 question.close()
             return {'answers': answers, 'question': q}
         except IndexError:
             raise Exception(
-                'There was a mistake in {0} formatting: \n\n'.format(self.f)
+                'There was a mistake in {} formatting: \n\n'.format(self.f)
+                + 'on line {}: '.format(l) + q[4] +'\n'
                 + 'QUESTION: \n'                
                 + '{}\n\n'.format(q)
                 + 'ANSWERS: \n'
@@ -56,23 +72,19 @@ class Logic:
         q = self.chooseQuestion()
         d = self.parseQuestion(q)
         self.questiondict[self.questionpath]['correct answers'] = d['answers']
-#        for keys, values in d.items():
-#            print str(keys)+': \n'+str(values)
         return d
 
     def calculateScore(self):
         total = 0
         correct = 0
         for q in self.questiondict:
-            total += 5
-            for a in self.questiondict[q]['correct answers']:
-                correct += int(self.questiondict[q]['correct answers'][a] ==
-                                self.questiondict[q]['given answers'][a])
-        print total
-        print correct
-        print (correct*100)/total
+            for a in range(5):
+                total += 1
+                if (self.questiondict[q]['correct answers'][a] == 
+                        self.questiondict[q]['given answers'][a]):
+                    correct += 1
         return (correct*100)/total
-
+        
     def str2bool(self, v):
         if str(v).lower() in ('true', 'True', '1'):
             return True
@@ -102,12 +114,13 @@ class MainWindow(Tk):
             self.checkbuttonvar[str(i)] = BooleanVar()
             self.checkbtntext[str(i)] = StringVar()
             self.checkbtntext[str(i)].set(self.text['question'][i])
-            self.checkbuttons['question '+str(i)] = Checkbutton(self,
+            self.checkbuttons['question '+str(i)] = InvokableCheckbutton(self,
                               textvariable = self.checkbtntext[str(i)],
                               variable = self.checkbuttonvar[str(i)],
                               font=self.font)
             self.checkbuttons['question '+str(i)].pack(anchor = W)
-            self.widgetwraplist.append(self.checkbuttons['question '+str(i)])
+            self.widgetwraplist.append(self.checkbuttons['question '+str(i)])         
+            self.bind("<Key-KP_"+str(i)+">", self.checkbuttons['question '+str(i)].customInvoke)
         self.explvar = StringVar()
         self.explvar.set(' '.join(self.text['question'][6:]))
         self.explanation = Label(self, textvariable=self.explvar,
@@ -155,8 +168,7 @@ class MainWindow(Tk):
             else:
                 self.bind("<Right>", self.reviewWindow)
                 self.buttonNext.configure(text='Review wrong answers')
-                self.buttonNext.configure(command=self.reviewWindow)
-                print len(self.logic.questiondict)
+                self.buttonNext.configure(command= lambda: self.reviewWindow(1))
 
     def reviewWindow(self, event):
         self.reviewed = 0
@@ -171,7 +183,7 @@ class MainWindow(Tk):
     def showAnswer(self, event):
         if self.reviewed == 0:
             self.bind("<Right>", self.showAnswer)
-            self.buttonNext.configure(command=self.showAnswer)
+            self.buttonNext.configure(command= lambda: self.showAnswer(1))
         for q in self.logic.questiondict:
             if self.logic.questiondict[q]['is correct'] == False:
                 f = open(q, 'r')
