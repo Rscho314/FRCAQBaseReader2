@@ -9,6 +9,7 @@ from Tkinter import Tk, Label, Checkbutton, W, S, BooleanVar, Button, LEFT
 from Tkinter import StringVar
 import tkFont
 import os
+import sys
 from random import randint
 
 
@@ -30,7 +31,7 @@ class Logic:
             if os.path.isfile(os.path.join(self.quest_dir,f))]
         self.questiondict = {}
         self.questioncount = 0
-        self.EXAM_END = 5
+        self.EXAM_END = int(sys.argv[1])
 
     def chooseQuestion(self):
         self.f = self.filenames[randint(0, 1666)]
@@ -240,6 +241,7 @@ class MainWindow(Tk):
 
 
 def main():
+    print 'Argument List:', str(sys.argv)
     root = MainWindow()
     root.wrapWidgets()
     root.mainloop()

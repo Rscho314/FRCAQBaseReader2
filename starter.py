@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from Tkinter import Tk, Label, Button, LEFT
+from Tkinter import Tk, Label, Button, LEFT, Spinbox, IntVar
 from subprocess import call
-import exam, quest_by_quest
+
 
 class StarterWindow(Tk):
     def __init__(self):
@@ -10,6 +10,10 @@ class StarterWindow(Tk):
         self.exambtn = Button(self, text='start an exam',
                               command=self.startExam)
         self.exambtn.pack()
+        self.maxquestvar = IntVar()
+        self.maxquest = Spinbox(self, from_=1, to=1667, width=4,
+                                textvariable=self.maxquestvar)
+        self.maxquest.pack()
         self.questbtn = Button(self, text='start single questions',
                                command=self.startQuestions)
         self.questbtn.pack()
@@ -23,11 +27,10 @@ class StarterWindow(Tk):
         self.usermanual.pack()
 
     def startExam(self):
-        call(["python","exam.py"])
+        call(["python","exam.py", str(self.maxquestvar.get())])
 
     def startQuestions(self):
         call(["python","quest_by_quest.py"])
-
 
 def main():
     root = StarterWindow()

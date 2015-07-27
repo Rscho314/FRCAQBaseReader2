@@ -5,7 +5,7 @@ Created on Fri Jul 24 15:17:33 2015
 @author: RLSR
 """
 
-from Tkinter import Tk, Label, Checkbutton, W, S, BooleanVar, Button, LEFT
+from Tkinter import Tk, Label, W, S, BooleanVar, Button, LEFT
 from Tkinter import StringVar
 import tkFont
 import os
