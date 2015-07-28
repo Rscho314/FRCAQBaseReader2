@@ -15,12 +15,12 @@ from exam import InvokableCheckbutton
 
 class Logic:
     def __init__(self):
-        self.quest_dir = os.path.join(os.path.dirname(__file__), 'resource')
-        self.filenames = [f for f in os.listdir(self.quest_dir) 
-            if os.path.isfile(os.path.join(self.quest_dir,f))]
+		self.quest_dir = os.path.join(os.path.dirname(__file__), 'resource')
+		self.filenames = [f for f in os.listdir(self.quest_dir) if os.path.isfile(os.path.join(self.quest_dir,f))]
+		self.file_count = len([name for name in os.listdir('./resource') if os.path.isfile(os.path.join('./resource', name))])
     
     def chooseQuestion(self):
-        self.f = self.filenames[randint(0, 1666)]
+        self.f = self.filenames[randint(0, self.file_count)]
         return open(os.path.join(self.quest_dir, self.f), 'r')
         
     def parseQuestion(self, question):
@@ -66,8 +66,8 @@ class MainWindow(Tk):
         Tk.__init__(self)
         w, h = self.winfo_screenwidth(), self.winfo_screenheight()
         self.geometry("%dx%d+0+0" % (w, h))
-        self.bind("<Key-KP_Subtract>", self.OnSmaller)
-        self.bind("<Key-KP_Add>", self.OnBigger)
+        self.bind("<Down>", self.OnSmaller)
+        self.bind("<Up>", self.OnBigger)
         self.bind("<Right>", self.nextQuestion)
         self.bind("<Return>", self.showAnswer)
         self.logic = Logic()
@@ -92,7 +92,7 @@ class MainWindow(Tk):
                               font=self.font)
             self.checkbuttons['question '+str(i)].pack(anchor = W)
             self.widgetwraplist.append(self.checkbuttons['question '+str(i)])
-            self.bind("<Key-KP_"+str(i)+">", self.checkbuttons['question '+str(i)].customInvoke)
+            self.bind("<Key-"+str(i)+">", self.checkbuttons['question '+str(i)].customInvoke)
         self.explvar = StringVar()
         self.explvar.set(' '.join(self.text['question'][6:]))
         self.explanation = Label(self, textvariable=self.explvar,
@@ -131,14 +131,14 @@ class MainWindow(Tk):
         self.explanation.pack(anchor = W)
 
     def OnBigger(self, event):
-        '''Make the font 2 points bigger'''
-        size = self.font['size']
-        self.font.configure(size=size+2)
+		'''Make the font 2 points bigger'''
+		size = self.font['size']
+		self.font.configure(size=size+2)
 
     def OnSmaller(self, event):
-        '''Make the font 2 points smaller'''
-        size = self.font['size']
-        self.font.configure(size=size-2)
+		'''Make the font 2 points smaller'''
+		size = self.font['size']
+		self.font.configure(size=size-2)
 
     def wrapWidgets(self):
         self.update()
